@@ -33,7 +33,6 @@ export const searchUnsplashPhotos = async (
       page,
       perPage,
     });
-    debugger;
     if (response.errors) {
       console.error("Error fetching photos:", response.errors);
       throw new Error("Error fetching photos from Unsplash.");

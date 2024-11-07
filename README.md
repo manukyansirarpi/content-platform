@@ -1,46 +1,89 @@
-# Getting Started with Create React App
+# Image Gallery Application
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Welcome to the Image Gallery Application! This is a React-based web app that allows users to browse, search, and view high-quality photos. It features an infinite scrolling masonry grid layout and integrates with two popular photo APIs: Pexels and Unsplash.
 
-## Available Scripts
+## Table of Contents
+- [Features](#features)
+- [Technologies Used](#technologies-used)
+- [Performance Optimization](#performance-optimization)
+- [Getting Started](#getting-started)
+- [Running the Application](#running-the-application)
+- [Environment Variables](#environment-variables)
+- [API Integration](#api-integration)
+- [Error Handling](#error-handling)
 
-In the project directory, you can run:
+## Features
+- Masonry grid layout for displaying images.
+- Infinite scrolling with intersection observer to load more photos dynamically.
+- Integrated with Pexels and Unsplash APIs for curated and searchable images.
+- Detailed photo view with photographer details and a link to the original source.
+- Debounced search feature to avoid excessive API calls.
+- Error handling with a custom Error Boundary component.
 
-### `npm start`
+## Technologies Used
+- **React**: Frontend library for building the user interface.
+- **React Router**: For navigating between pages.
+- **Styled-components**: For styling the components using CSS-in-JS.
+- **Intersection Observer API**: For loading more photos as the user scrolls down.
+- **Pexels API** and **Unsplash API**: For fetching curated and searchable photos.
+- **Lodash debounce**: To optimize user input handling in the search bar.
+- **TypeScript**: For type safety in the project.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Performance Optimization
+1. **Lazy Loading Images**: Images are loaded with the `loading="lazy"` attribute to improve the performance by not loading all the images at once.
+2. **Debounced Search Input**: The search input is debounced using `lodash/debounce` to prevent unnecessary API calls on each keystroke, optimizing performance and minimizing rate limits.
+3. **Intersection Observer**: The intersection observer is used to load more photos as the user scrolls, creating an infinite scrolling experience without overloading the server with requests.
+4. **Error Boundary**: Implemented an `ErrorBoundary` component to catch any runtime errors and ensure that the app does not crash unexpectedly, providing a user-friendly message instead.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Getting Started
+To get started with this project, you need to clone the repository and install the required dependencies.
 
-### `npm test`
+### Prerequisites
+- Node.js (>= 14.x)
+- npm or yarn
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Installation
+1. Clone the repository:
+   ```sh
+   git clone git@github.com:manukyansirarpi/content-platform.git
+   cd content-platform
+   ```
+2. Install the dependencies:
+   ```sh
+   npm install
+   # or
+   yarn install
+   ```
 
-### `npm run build`
+## Running the Application
+After installing the dependencies, you can run the application locally:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```sh
+npm start
+# or
+yarn start
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+This command will start the development server, and you can view the app in your browser at `http://localhost:3000`.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Environment Variables
+The application requires API keys for both Pexels and Unsplash. To configure these, create a `.env` file in the root directory and add the following:
 
-### `npm run eject`
+```sh
+REACT_APP_PEXELS_API_KEY=your_pexels_api_key
+REACT_APP_UNSPLASH_ACCESS_KEY=your_unsplash_access_key
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+Make sure to replace `your_pexels_api_key` and `your_unsplash_access_key` with your actual API keys.
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## API Integration
+The application integrates with the following photo APIs:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+- **Pexels API**: For fetching curated photos.
+- **Unsplash API**: For searching photos based on user input.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+These APIs are utilized in the `pexelsApi.ts` and `unsplashApi.ts` files, which contain functions to fetch photos based on different requirements.
 
-## Learn More
+## Error Handling
+The application includes a custom `ErrorBoundary` component that is used to catch any unexpected runtime errors during component rendering. This helps in gracefully handling errors without crashing the entire application. Additionally, retry logic is implemented for loading photos, especially to handle rate limits.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).

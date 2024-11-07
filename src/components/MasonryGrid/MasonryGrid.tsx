@@ -4,7 +4,12 @@ import { useNavigate } from "react-router-dom";
 
 import { fetchPhotos } from "../../api/pexelsApi";
 
-import { StyledGrid, StyledPhoto } from "./MasonryGrid.styles";
+import {
+  StyledGrid,
+  StyledPhoto,
+  StyledSearchContainer,
+  StyledInput,
+} from "./MasonryGrid.styles";
 import useIntersectionObserver from "../../hoks/useIntersectionObserver";
 import { searchUnsplashPhotos } from "../../api/unsplashApi";
 import { Photo } from "../../types/photo";
@@ -106,13 +111,15 @@ const MasonryGrid: React.FC = () => {
 
   return (
     <div>
-      <form onSubmit={(e) => e.preventDefault()}>
-        <input
-          type="text"
-          placeholder="Search photos..."
-          onChange={handleSearchChange}
-        />
-      </form>
+      <StyledSearchContainer>
+        <form onSubmit={(e) => e.preventDefault()}>
+          <StyledInput
+            type="text"
+            placeholder="Search photos..."
+            onChange={handleSearchChange}
+          />
+        </form>
+      </StyledSearchContainer>
       {error && <p>{error}</p>}
       <StyledGrid>{renderedPhotos}</StyledGrid>
       {loading && <p>Loading...</p>}
