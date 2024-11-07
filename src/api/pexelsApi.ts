@@ -1,4 +1,4 @@
-import { Photo } from "../types/photo";
+import { createClient, Photo } from "pexels";
 
 const API_KEY = process.env.REACT_APP_PEXELS_API_KEY;
 
@@ -6,41 +6,41 @@ if (!API_KEY) {
   throw new Error("Pexels API key is not defined in the environment variables");
 }
 
-let photoCache: { [key: number]: Photo } = {};
+const pexelsClient = createClient(API_KEY);
 
 export const fetchPhotos = async (
   page: number,
   perPage: number
 ): Promise<Photo[]> => {
-  const response = await fetch(
-    `https://api.pexels.com/v1/curated?page=${page}&per_page=${perPage}`,
-    {
-      headers: {
-        Authorization: API_KEY,
-      },
+  try {
+    const response = await pexelsClient.photos.curated({
+      page,
+      per_page: perPage,
+    });
+    if ("error" in response) {
+      throw new Error(response.error);
     }
-  );
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch photos");
+    return response.photos;
+  } catch (error) {
+    console.error("Failed to fetch curat≈ed photos:", error);
+    throw error;
   }
-
-  const data = await response.json();
-
-  // Cache the fetched photos
-  data.photos.forEach((photo: Photo) => {
-    photoCache[photo.id] = photo;
-  });
-
-  return data.photos;
 };
 
-export const fetchPhotoById = async (id: number): Promise<Photo | null> => {
-  // Check the cache first
-  if (photoCache[id]) {
-    return photoCache[id];
-  }
+export const fetchPhotoById = async (id: number) => {
+  try {
+    const response = await pexelsClient.photos.show({ id });
 
-  // Since Pexels doesn't provide a single photo endpoint, we can only return null if not in cache
-  return null;
+    if ("error" in response) {
+      throw new Error(response.error);
+    }
+
+    return response;
+  } catch (error) {
+    console.error("Failed to fetch photo by ID:", error);
+    return null;
+  }
 };
+
+export default pexelsClient;
