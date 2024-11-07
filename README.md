@@ -90,6 +90,5 @@ The application includes a custom `ErrorBoundary` component that is used to catc
  
 [Watch the demo]()
 
-- [![Watch the video](https://img.youtube.com/vi/dWLBl60dwxY/0.jpg)]( https://youtu.be/dWLBl60dwxY )
-- 
+[![Watch the video](https://img.youtube.com/vi/dWLBl60dwxY/0.jpg)]( https://youtu.be/dWLBl60dwxY )
 
