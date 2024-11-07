@@ -2,10 +2,10 @@ export interface Photo {
   id: number;
   url: string;
   photographer: string;
+  alt: string | null;
   src: {
-    original: string;
-    medium: string;
-    [key: string]: string;
+    regular: string;
+    large: string;
+    small: string;
   };
-  [key: string]: any;
 }

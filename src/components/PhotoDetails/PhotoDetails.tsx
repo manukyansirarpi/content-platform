@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Photo } from "pexels";
+
 import { fetchPhotoById, fetchPhotos } from "../../api/pexelsApi";
 import {
   BackButton,
@@ -9,31 +9,32 @@ import {
   Photographer,
   PhotoLink,
 } from "./PhotoDetails.styles";
+import { Photo } from "../../types/photo";
 
 const PhotoDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [photo, setPhoto] = useState<Photo | null>(null);
 
-  useEffect(() => {
-    const loadPhoto = async () => {
-      try {
-        const cachedPhoto = await fetchPhotoById(Number(id));
-        if (cachedPhoto) {
-          setPhoto(cachedPhoto);
-        } else {
-          // Fallback to fetch more photos if not available in cache
-          const allPhotos = await fetchPhotos(1, 50);
-          const selectedPhoto = allPhotos.find((p) => p.id === Number(id));
-          setPhoto(selectedPhoto || null);
-        }
-      } catch (error) {
-        console.error("Error fetching photo details:", error);
+  const loadPhoto = useCallback(async () => {
+    try {
+      const cachedPhoto = await fetchPhotoById(Number(id));
+      if (cachedPhoto) {
+        setPhoto(cachedPhoto);
+      } else {
+        // Fallback to fetch more photos if not available in cache
+        const allPhotos = await fetchPhotos(1, 50);
+        const selectedPhoto = allPhotos.find((p) => p.id === Number(id));
+        setPhoto(selectedPhoto || null);
       }
-    };
-
-    loadPhoto();
+    } catch (error) {
+      console.error("Error fetching photo details:", error);
+    }
   }, [id]);
+
+  useEffect(() => {
+    loadPhoto();
+  }, [loadPhoto]);
 
   if (!photo) {
     return <p>Loading...</p>;
@@ -43,7 +44,12 @@ const PhotoDetail: React.FC = () => {
     <Container>
       <BackButton onClick={() => navigate(-1)}>Back</BackButton>
       <PhotoContainer>
-        <img src={photo.src.original} alt={photo.photographer} />
+        <img
+          src={photo.src.large}
+          alt={photo.photographer}
+          loading="lazy"
+          decoding="async"
+        />
         <Photographer>Photographer: {photo.photographer}</Photographer>
         <PhotoLink>
           URL:{" "}

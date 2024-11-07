@@ -10,11 +10,11 @@ const useIntersectionObserver = (
   callback: () => void,
   options?: Options,
   loading: boolean = false
-) => {
+): React.RefObject<HTMLDivElement> => {
   const targetRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (loading) return; // Don't create a new observer if we're already loading
+    if (loading) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
