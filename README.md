@@ -88,6 +88,12 @@ These APIs are utilized in the `pexelsApi.ts` and `unsplashApi.ts` files, which 
 The application includes a custom `ErrorBoundary` component that is used to catch any unexpected runtime errors during component rendering. This helps in gracefully handling errors without crashing the entire application. Additionally, retry logic is implemented for loading photos, especially to handle rate limits.
 
  
+
+[Deployed to Vercel ]()
+
+https://content-platform-lsy9i3ox5-sirarpis-projects.vercel.app/
+
+
 [Watch the demo]()
 
 [![Watch the video](https://img.youtube.com/vi/dWLBl60dwxY/0.jpg)]( https://youtu.be/dWLBl60dwxY )
