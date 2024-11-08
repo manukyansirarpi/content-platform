@@ -100,7 +100,8 @@ const MasonryGrid: React.FC = () => {
   );
 
   const handlePhotoClick = useCallback(
-    (id: number, source: "pexels" | "unsplash") => {
+    (id: number, isSearching: boolean) => {
+      const source = isSearching ? "unsplash" : "pexels";
       navigate(`/photo/${id}?source=${source}`);
     },
     [navigate]
@@ -111,7 +112,7 @@ const MasonryGrid: React.FC = () => {
       photos.map((photo) => (
         <StyledPhoto
           key={photo.id}
-          onClick={() => handlePhotoClick(photo.id, photo.source)}
+          onClick={() => handlePhotoClick(photo.id, isSearching)}
         >
           <img
             src={photo.src.small}
