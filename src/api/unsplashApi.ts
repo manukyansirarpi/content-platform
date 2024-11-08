@@ -44,3 +44,21 @@ export const searchUnsplashPhotos = async (
     return [];
   }
 };
+
+export const fetchUnsplashPhotoById = async (
+  id: string
+): Promise<Photo | null> => {
+  try {
+    const response = await unsplash.photos.get({ photoId: id });
+
+    if (response.errors) {
+      console.error("Error fetching photo by ID:", response.errors);
+      throw new Error("Error fetching photo from Unsplash.");
+    }
+
+    return response.response ? mapUnsplashPhoto(response.response) : null;
+  } catch (error) {
+    console.error("Failed to fetch photo from Unsplash by ID:", error);
+    return null;
+  }
+};

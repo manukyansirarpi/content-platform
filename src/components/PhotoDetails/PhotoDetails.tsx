@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-
+import { useLocation } from "react-router-dom";
 import { fetchPhotoById, fetchPhotos } from "../../api/pexelsApi";
 import {
   BackButton,
@@ -10,27 +10,30 @@ import {
   PhotoLink,
 } from "./PhotoDetails.styles";
 import { Photo } from "../../types/photo";
+import { fetchUnsplashPhotoById } from "../../api/unsplashApi";
 
 const PhotoDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [photo, setPhoto] = useState<Photo | null>(null);
+
+  const queryParams = new URLSearchParams(location.search);
+  const source = queryParams.get("source") as "pexels" | "unsplash";
 
   const loadPhoto = useCallback(async () => {
     try {
-      const cachedPhoto = await fetchPhotoById(Number(id));
-      if (cachedPhoto) {
-        setPhoto(cachedPhoto);
-      } else {
-        // Fallback to fetch more photos if not available in cache
-        const allPhotos = await fetchPhotos(1, 50);
-        const selectedPhoto = allPhotos.find((p) => p.id === Number(id));
-        setPhoto(selectedPhoto || null);
+      if (source === "pexels") {
+        const cachedPhoto = await fetchPhotoById(Number(id));
+        setPhoto(cachedPhoto || null);
+      } else if (source === "unsplash") {
+        const cachedPhoto = await fetchUnsplashPhotoById(id!);
+        setPhoto(cachedPhoto || null);
       }
     } catch (error) {
       console.error("Error fetching photo details:", error);
     }
-  }, [id]);
+  }, [id, source]);
 
   useEffect(() => {
     loadPhoto();

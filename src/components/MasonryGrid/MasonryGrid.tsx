@@ -3,7 +3,6 @@ import debounce from "lodash/debounce";
 import { useNavigate } from "react-router-dom";
 
 import { fetchPhotos } from "../../api/pexelsApi";
-
 import {
   StyledGrid,
   StyledPhoto,
@@ -14,6 +13,8 @@ import useIntersectionObserver from "../../hoks/useIntersectionObserver";
 import { searchUnsplashPhotos } from "../../api/unsplashApi";
 import { Photo } from "../../types/photo";
 
+const PHOTOS_PER_PAGE = 15;
+
 const MasonryGrid: React.FC = () => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [page, setPage] = useState<number>(1);
@@ -23,21 +24,27 @@ const MasonryGrid: React.FC = () => {
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const loadPhotosWithRetry = async (retryCount = 0): Promise<void> => {
+  const loadPhotosWithRetry = useCallback(
+    async (retryCount = 0): Promise<void> => {
       if (loading) return;
-
       setLoading(true);
       setError(null);
 
       try {
         const newPhotos = isSearching
-          ? await searchUnsplashPhotos(query, page, 15)
-          : await fetchPhotos(page, 15);
-        if (newPhotos) {
-          setPhotos((prev) =>
-            isSearching && page === 1 ? [...newPhotos] : [...prev, ...newPhotos]
-          );
+          ? await searchUnsplashPhotos(query, page, PHOTOS_PER_PAGE)
+          : await fetchPhotos(page, PHOTOS_PER_PAGE);
+
+        if (newPhotos && newPhotos.length > 0) {
+          setPhotos((prev) => {
+            const existingIds = new Set(prev.map((photo) => photo.id));
+            const uniqueNewPhotos = newPhotos.filter(
+              (photo) => !existingIds.has(photo.id)
+            );
+            return isSearching && page === 1
+              ? [...uniqueNewPhotos]
+              : [...prev, ...uniqueNewPhotos];
+          });
         } else {
           setError("Failed to load photos");
         }
@@ -54,10 +61,15 @@ const MasonryGrid: React.FC = () => {
       } finally {
         setLoading(false);
       }
-    };
+    },
+    [loading, isSearching, query, page]
+  );
 
-    loadPhotosWithRetry();
-  }, [page, query, isSearching]);
+  useEffect(() => {
+    if (!loading && photos.length < page * PHOTOS_PER_PAGE) {
+      loadPhotosWithRetry();
+    }
+  }, [page, query, isSearching, loadPhotosWithRetry, loading, photos.length]);
 
   const debouncedSearch = useCallback(
     debounce((value: string) => {
@@ -65,9 +77,14 @@ const MasonryGrid: React.FC = () => {
         setPage(1);
         setIsSearching(true);
         setQuery(value);
-        setPhotos([]); // Clear existing photos when starting a new search
+        setPhotos([]);
+      } else if (value.length === 0) {
+        setIsSearching(false);
+        setQuery("");
+        setPhotos([]);
+        setPage(1);
       }
-    }, 500),
+    }, 800),
     []
   );
 
@@ -83,8 +100,8 @@ const MasonryGrid: React.FC = () => {
   );
 
   const handlePhotoClick = useCallback(
-    (id: number) => {
-      navigate(`/photo/${id}`);
+    (id: number, source: "pexels" | "unsplash") => {
+      navigate(`/photo/${id}?source=${source}`);
     },
     [navigate]
   );
@@ -92,11 +109,18 @@ const MasonryGrid: React.FC = () => {
   const renderedPhotos = useMemo(
     () =>
       photos.map((photo) => (
-        <StyledPhoto key={photo.id} onClick={() => handlePhotoClick(photo.id)}>
+        <StyledPhoto
+          key={photo.id}
+          onClick={() => handlePhotoClick(photo.id, photo.source)}
+        >
           <img
-            src={photo.src.regular}
-            alt={photo.photographer}
+            src={photo.src.small}
+            srcSet={`${photo.src.small} 300w, ${photo.src.regular} 768w, ${photo.src.large} 1200w`}
+            sizes="(max-width: 600px) 300px, (max-width: 1024px) 768px, 1200px"
+            alt={photo.alt || "Photo"}
             loading="lazy"
+            decoding="async"
+            width="300"
           />
         </StyledPhoto>
       )),
@@ -105,7 +129,7 @@ const MasonryGrid: React.FC = () => {
 
   const loaderRef = useIntersectionObserver(
     loadMorePhotos,
-    { threshold: 1.0 },
+    { threshold: 0.5 },
     loading
   );
 
