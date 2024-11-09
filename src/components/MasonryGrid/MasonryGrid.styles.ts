@@ -1,15 +1,31 @@
 import styled from "styled-components";
 
 export const StyledGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
+  column-gap: 16px;
   padding: 16px;
+
+  column-count: 1;
+
+  @media (min-width: 600px) {
+    column-count: 2;
+  }
+
+  @media (min-width: 900px) {
+    column-count: 3;
+  }
+
+  @media (min-width: 1200px) {
+    column-count: 4;
+  }
 `;
 
 export const StyledPhoto = styled.div`
+  break-inside: avoid;
+  margin-bottom: 16px;
+
   img {
     width: 100%;
+    height: auto;
     border-radius: 8px;
     transition: transform 0.3s ease;
     &:hover {

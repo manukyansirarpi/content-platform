@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useLocation } from "react-router-dom";
-import { fetchPhotoById, fetchPhotos } from "../../api/pexelsApi";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { fetchPhotoById } from "../../api/pexelsApi";
 import {
   BackButton,
   Container,
@@ -57,7 +56,7 @@ const PhotoDetail: React.FC = () => {
         <PhotoLink>
           URL:{" "}
           <a href={photo.url} target="_blank" rel="noopener noreferrer">
-            View on Pexels
+            View on {source === "pexels" ? "Pexels" : "Unsplash"}
           </a>
         </PhotoLink>
       </PhotoContainer>

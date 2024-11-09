@@ -9,7 +9,7 @@ import {
   StyledSearchContainer,
   StyledInput,
 } from "./MasonryGrid.styles";
-import useIntersectionObserver from "../../hoks/useIntersectionObserver";
+import useIntersectionObserver from "../../hooks/useIntersectionObserver";
 import { searchUnsplashPhotos } from "../../api/unsplashApi";
 import { Photo } from "../../types/photo";
 
