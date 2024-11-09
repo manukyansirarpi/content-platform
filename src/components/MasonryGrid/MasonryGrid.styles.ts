@@ -57,3 +57,8 @@ export const StyledInput = styled.input`
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
   }
 `;
+
+export const Loader = styled.div`
+  height: 20px;
+  margin-bottom: 20px;
+`;

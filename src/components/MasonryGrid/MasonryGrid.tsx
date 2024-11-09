@@ -1,28 +1,77 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import debounce from "lodash/debounce";
-import { useNavigate } from "react-router-dom";
 
-import { fetchPhotos } from "../../api/pexelsApi";
-import {
-  StyledGrid,
-  StyledPhoto,
-  StyledSearchContainer,
-  StyledInput,
-} from "./MasonryGrid.styles";
 import useIntersectionObserver from "../../hooks/useIntersectionObserver";
-import { searchUnsplashPhotos } from "../../api/unsplashApi";
+
+import PhotoItem from "./PhotoItem";
+import ErrorMessage from "./ErrorMessage";
+import LoadingMessage from "./LoadingMessage";
+import SearchForm from "./SearchForm";
+
+import { StyledGrid, Loader } from "./MasonryGrid.styles";
+
 import { Photo } from "../../types/photo";
+import { fetchPhotosBySource, handleNewPhotos } from "../../api/photoApis";
 
 const PHOTOS_PER_PAGE = 15;
 
-const MasonryGrid: React.FC = () => {
+const usePhotoState = (initialTerm: string) => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [page, setPage] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [query, setQuery] = useState<string>("");
-  const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>(initialTerm);
+
+  return {
+    photos,
+    setPhotos,
+    page,
+    setPage,
+    loading,
+    setLoading,
+    error,
+    setError,
+    searchTerm,
+    setSearchTerm,
+  };
+};
+
+const MasonryGrid: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const queryParams = new URLSearchParams(location.search);
+  const source = queryParams.get("source") || "pexels";
+  const term = queryParams.get("term") || "";
+
+  const {
+    photos,
+    setPhotos,
+    page,
+    setPage,
+    loading,
+    setLoading,
+    error,
+    setError,
+    searchTerm,
+    setSearchTerm,
+  } = usePhotoState(term);
+
+  const handleErrorAndRetry = (
+    err: any,
+    retryCount: number,
+    loadPhotosWithRetry: Function,
+    setError: Function
+  ) => {
+    if (retryCount < 5) {
+      console.warn("Rate limit hit, retrying...", retryCount);
+      const retryDelay = 2 ** retryCount * 1000;
+      setTimeout(() => loadPhotosWithRetry(retryCount + 1), retryDelay);
+    } else {
+      setError("Failed to load photos after multiple attempts");
+    }
+  };
 
   const loadPhotosWithRetry = useCallback(
     async (retryCount = 0): Promise<void> => {
@@ -31,65 +80,52 @@ const MasonryGrid: React.FC = () => {
       setError(null);
 
       try {
-        const newPhotos = isSearching
-          ? await searchUnsplashPhotos(query, page, PHOTOS_PER_PAGE)
-          : await fetchPhotos(page, PHOTOS_PER_PAGE);
+        const newPhotos = await fetchPhotosBySource(
+          source,
+          term,
+          page,
+          PHOTOS_PER_PAGE
+        );
 
-        if (newPhotos && newPhotos.length > 0) {
-          setPhotos((prev) => {
-            const existingIds = new Set(prev.map((photo) => photo.id));
-            const uniqueNewPhotos = newPhotos.filter(
-              (photo) => !existingIds.has(photo.id)
-            );
-            return isSearching && page === 1
-              ? [...uniqueNewPhotos]
-              : [...prev, ...uniqueNewPhotos];
-          });
+        if (newPhotos?.length) {
+          handleNewPhotos(newPhotos, source, page, setPhotos);
         } else {
           setError("Failed to load photos");
         }
       } catch (err) {
-        if (retryCount < 5) {
-          console.warn("Rate limit hit, retrying...", retryCount);
-          setTimeout(
-            () => loadPhotosWithRetry(retryCount + 1),
-            2 ** retryCount * 1000
-          );
-        } else {
-          setError("Failed to load photos after multiple attempts");
-        }
+        handleErrorAndRetry(err, retryCount, loadPhotosWithRetry, setError);
       } finally {
         setLoading(false);
       }
     },
-    [loading, isSearching, query, page]
+    [loading, source, term, page]
   );
 
   useEffect(() => {
     if (!loading && photos.length < page * PHOTOS_PER_PAGE) {
       loadPhotosWithRetry();
     }
-  }, [page, query, isSearching, loadPhotosWithRetry, loading, photos.length]);
+  }, [page, term, source, loadPhotosWithRetry]);
 
   const debouncedSearch = useCallback(
     debounce((value: string) => {
       if (value.length >= 3) {
         setPage(1);
-        setIsSearching(true);
-        setQuery(value);
         setPhotos([]);
+        navigate(`?source=unsplash&term=${value}`);
       } else if (value.length === 0) {
-        setIsSearching(false);
-        setQuery("");
         setPhotos([]);
         setPage(1);
+        navigate(`?source=pexels`);
       }
     }, 800),
-    []
+    [navigate]
   );
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    debouncedSearch(e.target.value);
+    const value = e.target.value;
+    setSearchTerm(value);
+    debouncedSearch(value);
   };
 
   const loadMorePhotos = useCallback(
@@ -100,30 +136,16 @@ const MasonryGrid: React.FC = () => {
   );
 
   const handlePhotoClick = useCallback(
-    (id: number, isSearching: boolean) => {
-      const source = isSearching ? "unsplash" : "pexels";
+    (id: number) => {
       navigate(`/photo/${id}?source=${source}`);
     },
-    [navigate]
+    [navigate, source]
   );
 
   const renderedPhotos = useMemo(
     () =>
       photos.map((photo) => (
-        <StyledPhoto
-          key={photo.id}
-          onClick={() => handlePhotoClick(photo.id, isSearching)}
-        >
-          <img
-            src={photo.src.small}
-            srcSet={`${photo.src.small} 300w, ${photo.src.regular} 768w, ${photo.src.large} 1200w`}
-            sizes="(max-width: 600px) 300px, (max-width: 1024px) 768px, 1200px"
-            alt={photo.alt || "Photo"}
-            loading="lazy"
-            decoding="async"
-            width="300"
-          />
-        </StyledPhoto>
+        <PhotoItem key={photo.id} photo={photo} onClick={handlePhotoClick} />
       )),
     [photos, handlePhotoClick]
   );
@@ -135,21 +157,16 @@ const MasonryGrid: React.FC = () => {
   );
 
   return (
-    <div>
-      <StyledSearchContainer>
-        <form onSubmit={(e) => e.preventDefault()}>
-          <StyledInput
-            type="text"
-            placeholder="Search photos..."
-            onChange={handleSearchChange}
-          />
-        </form>
-      </StyledSearchContainer>
-      {error && <p>{error}</p>}
+    <React.Fragment>
+      <SearchForm
+        searchTerm={searchTerm}
+        handleSearchChange={handleSearchChange}
+      />
+      {error && <ErrorMessage error={error} />}
       <StyledGrid>{renderedPhotos}</StyledGrid>
-      {loading && <p>Loading...</p>}
-      <div ref={loaderRef} style={{ height: "20px", marginBottom: "20px" }} />
-    </div>
+      {loading && <LoadingMessage />}
+      <Loader ref={loaderRef} />
+    </React.Fragment>
   );
 };
 
