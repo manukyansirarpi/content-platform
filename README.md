@@ -91,7 +91,7 @@ The application includes a custom `ErrorBoundary` component that is used to catc
 
 [Deployed to Vercel ]()
 
-https://content-platform-lsy9i3ox5-sirarpis-projects.vercel.app/
+[https://content-platform-zeta.vercel.app/](https://content-platform-zeta.vercel.app/)
 
 
 [Watch the demo]()
