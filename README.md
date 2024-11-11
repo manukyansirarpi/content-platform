@@ -95,11 +95,14 @@ The application includes a custom `ErrorBoundary` component that is used to catc
 ## Page Speed analysis  
 [https://pagespeed.web.dev/analysis/https-content-platform-zeta-vercel-app/85km1yvtod?form_factor=mobile](https://pagespeed.web.dev/analysis/https-content-platform-zeta-vercel-app/85km1yvtod?form_factor=mobile)
 
-##  Lighthouse reports
+##  Lighthouse reports main page
 
 ![Screenshot 2024-11-09 at 15 35 26](https://github.com/user-attachments/assets/f965a6fc-37a8-4131-bf3b-01563645043a)
 
 
+##  Lighthouse reports search page mobile view
+
+![Screen Shot 2024-11-11 at 10 21 16 AM (1)](https://github.com/user-attachments/assets/0ed413da-d1e4-4ddc-91b1-6552dfba2669)
 
   
 
